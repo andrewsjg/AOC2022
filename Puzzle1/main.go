@@ -25,24 +25,46 @@ func main() {
 		fmt.Println("There was an error: " + err.Error())
 	}
 
-	mostCalories := findMostCalories(elfExpedition)
+	mostCalories, _ := findMostCalories(elfExpedition)
 
 	fmt.Printf("The most calories carried is: %d\n", mostCalories)
+	fmt.Printf("The top 3 elves are carrying %d calories\n", totalTopThree(elfExpedition))
 
 }
 
-func findMostCalories(elfExpedition []Elf) int {
-	most := 0
+func findMostCalories(elfExpedition []Elf) (mostCals int, elfNum int) {
 
-	for _, elfRecord := range elfExpedition {
+	for idx, elfRecord := range elfExpedition {
 		elfTotalCals := elfRecord.TotalCalories()
 
-		if elfTotalCals > most {
-			most = elfTotalCals
+		if elfTotalCals > mostCals {
+			mostCals = elfTotalCals
+			elfNum = idx
 		}
 	}
 
-	return most
+	return mostCals, elfNum
+}
+
+func totalTopThree(elfExpedition []Elf) int {
+	total := 0
+
+	for i := 0; i < 3; i++ {
+		elfTotal, elfNum := findMostCalories(elfExpedition)
+
+		total = total + elfTotal
+
+		elfExpedition = RemoveIndex(elfExpedition, elfNum)
+	}
+
+	return total
+}
+
+func RemoveIndex(s []Elf, index int) []Elf {
+	ret := make([]Elf, 0)
+	ret = append(ret, s[:index]...)
+
+	return append(ret, s[index+1:]...)
 }
 
 func makeElfExpedition(filename string) ([]Elf, error) {
