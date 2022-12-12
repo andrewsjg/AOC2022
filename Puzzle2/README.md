@@ -5,5 +5,3 @@
 There is a way better way of doing this one, but this was what I did on my first attempt.
 
 Not happy with this solution. If I get bored I'll come back and make it better.
-
-
