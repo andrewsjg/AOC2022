@@ -4,4 +4,4 @@
 
 There is a way better way of doing this one, but this was what I did on my first attempt.
 
-Not happy with this solution. 
+Not happy with this solution.
