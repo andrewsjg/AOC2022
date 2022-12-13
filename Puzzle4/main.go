@@ -22,13 +22,19 @@ func main() {
 	}
 
 	containedCount := 0
+	overlapCount := 0
+
 	for _, assignmentPair := range assignments {
 		if checkContained(assignmentPair) {
 			containedCount++
 		}
+
+		if checkOverlap(assignmentPair) {
+			overlapCount++
+		}
 	}
 
-	fmt.Printf("The total contained assignments is: %d\n", containedCount)
+	fmt.Printf("The total contained assignments is: %d Total overlapping assignments is: %d\n", containedCount, overlapCount)
 }
 
 // Return an array of assignment pairs from the input
@@ -82,10 +88,11 @@ func makeAssignments(input string) ([][]assignment, error) {
 // Check if either assignment contains the other
 func checkContained(assignments []assignment) bool {
 	contained := false
-	assignment1 := assignments[0]
-	assignment2 := assignments[1]
 
 	if len(assignments) > 0 {
+		assignment1 := assignments[0]
+		assignment2 := assignments[1]
+
 		// assignment 1 is contained by assignment 2
 		if assignment1.sectionIDLowerBound >= assignment2.sectionIDLowerBound && assignment1.sectionIDUpperBound <= assignment2.sectionIDUpperBound {
 			contained = true
@@ -99,6 +106,44 @@ func checkContained(assignments []assignment) bool {
 	}
 
 	return contained
+}
+
+/*
+.....6...  6-6
+...456...  4-6
+
+.23456...  2-6
+...45678.  4-8
+
+..3456...  2-6
+1234.....  4-8
+
+*/
+
+// Check if an assignment pair overlaps
+func checkOverlap(assignments []assignment) bool {
+	overlap := false
+
+	if len(assignments) > 0 {
+		assignment1 := assignments[0]
+		assignment2 := assignments[1]
+
+		if checkContained(assignments) {
+			overlap = true
+		}
+
+		// Assignment1 overlaps assignment2's range
+		if assignment1.sectionIDLowerBound <= assignment2.sectionIDLowerBound && assignment1.sectionIDUpperBound <= assignment2.sectionIDUpperBound {
+			overlap = true
+		}
+
+		if assignment1.sectionIDLowerBound >= assignment2.sectionIDLowerBound && assignment1.sectionIDUpperBound >= assignment2.sectionIDUpperBound {
+			overlap = true
+		}
+
+	}
+
+	return overlap
 }
 
 // Convienience function to return the upper and lower bound as integers
