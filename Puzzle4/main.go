@@ -108,18 +108,6 @@ func checkContained(assignments []assignment) bool {
 	return contained
 }
 
-/*
-.....6...  6-6
-...456...  4-6
-
-.23456...  2-6
-...45678.  4-8
-
-..3456...  2-6
-1234.....  4-8
-
-*/
-
 // Check if an assignment pair overlaps
 func checkOverlap(assignments []assignment) bool {
 	overlap := false
@@ -132,15 +120,27 @@ func checkOverlap(assignments []assignment) bool {
 			overlap = true
 		}
 
-		// Assignment1 overlaps assignment2's range
-		if assignment1.sectionIDLowerBound <= assignment2.sectionIDLowerBound && assignment1.sectionIDUpperBound <= assignment2.sectionIDUpperBound {
+		if assignment1.sectionIDLowerBound >= assignment2.sectionIDLowerBound && assignment1.sectionIDLowerBound <= assignment2.sectionIDUpperBound {
+
 			overlap = true
 		}
 
-		if assignment1.sectionIDLowerBound >= assignment2.sectionIDLowerBound && assignment1.sectionIDUpperBound >= assignment2.sectionIDUpperBound {
+		// Is this check redundant?
+		if assignment2.sectionIDLowerBound >= assignment1.sectionIDLowerBound && assignment2.sectionIDLowerBound <= assignment1.sectionIDUpperBound {
+
 			overlap = true
 		}
 
+		if assignment1.sectionIDUpperBound <= assignment2.sectionIDUpperBound && assignment1.sectionIDUpperBound >= assignment2.sectionIDLowerBound {
+
+			overlap = true
+		}
+
+		// Is this check redundant?
+		if assignment2.sectionIDUpperBound <= assignment1.sectionIDUpperBound && assignment2.sectionIDUpperBound >= assignment1.sectionIDLowerBound {
+
+			overlap = true
+		}
 	}
 
 	return overlap
@@ -152,12 +152,12 @@ func getUpperandLowerBound(assignment []string) (int, int) {
 	upper := 0
 	lower := 0
 
-	upper, err := strconv.Atoi(assignment[0])
+	lower, err := strconv.Atoi(assignment[0])
 	if err != nil {
 		return 0, 0
 	}
 
-	lower, err = strconv.Atoi(assignment[1])
+	upper, err = strconv.Atoi(assignment[1])
 	if err != nil {
 		return 0, 0
 	}
