@@ -8,14 +8,32 @@ import (
 	"strings"
 )
 
-func main() {
+type elfGroup struct {
+	rucksacks []string
+}
 
+func main() {
+	// Part 1
+	fmt.Printf("The sum of all shared item priorities is: %d\n", sumPriorties())
+
+	// Part 2
+	groups := getElfGroups()
+	sum := 0
+
+	for _, group := range groups {
+		sum = sum + priorty(group.Badge())
+	}
+
+	fmt.Printf("The sum of all the badge priorities : %d\n", sum)
+}
+
+func sumPriorties() int {
 	rucksackData, err := os.Open("input.txt")
 	defer rucksackData.Close()
 
 	if err != nil {
 		fmt.Println(("There was an error: ") + err.Error())
-		return
+		return 0
 	}
 
 	rucksackReader := bufio.NewReader(rucksackData)
@@ -31,20 +49,71 @@ func main() {
 		compartment1, compartment2 := getCompartments(string(rucksack))
 		match := findMatch(compartment1, compartment2)
 
-		value := int(match)
+		value := priorty(match)
 
-		if value < 97 {
-			value = value - 38
-		} else {
-			value = value - 96
-		}
-
-		fmt.Printf("Rucksack: %s, Compartment1: %s, Compartment2: %s Shared Item: %s Ascii: %d, Value: %d\n", rucksack, compartment1, compartment2, string(match), int(match), value)
+		//fmt.Printf("Rucksack: %s, Compartment1: %s, Compartment2: %s Shared Item: %s Ascii: %d, Value: %d\n", rucksack, compartment1, compartment2, string(match), int(match), value)
 		sum = sum + value
 	}
 
-	fmt.Printf("The sum of all shared item priorities is: %d\n", sum)
+	return sum
 }
+
+func getElfGroups() []elfGroup {
+
+	elfGroups := []elfGroup{}
+
+	rucksackData, err := os.Open("input.txt")
+	defer rucksackData.Close()
+
+	if err != nil {
+		fmt.Println(("There was an error: ") + err.Error())
+		return elfGroups
+	}
+
+	rucksackReader := bufio.NewReader(rucksackData)
+
+	rsCount := 0
+	CurentElfGroup := elfGroup{}
+
+	for {
+		rucksack, _, err := rucksackReader.ReadLine()
+
+		if err == io.EOF {
+			break
+		}
+
+		CurentElfGroup.rucksacks = append(CurentElfGroup.rucksacks, string(rucksack))
+		rsCount = rsCount + 1
+
+		// New Group
+		if rsCount == 3 {
+			elfGroups = append(elfGroups, CurentElfGroup)
+			CurentElfGroup = elfGroup{}
+			rsCount = 0
+		}
+	}
+
+	return elfGroups
+}
+
+func (g elfGroup) Badge() rune {
+
+	badge := ' '
+
+	rs1 := g.rucksacks[0]
+	rs2 := g.rucksacks[1]
+	rs3 := g.rucksacks[2]
+
+	for _, char := range rs1 {
+		if strings.ContainsRune(rs2, char) && strings.ContainsRune(rs3, char) {
+			badge = char
+		}
+	}
+
+	return badge
+}
+
+// Utility Functions
 
 func getCompartments(rucksack string) (compartment1 string, compartment2 string) {
 
@@ -63,4 +132,17 @@ func findMatch(compartment1 string, compartment2 string) (match rune) {
 	}
 
 	return match
+}
+
+func priorty(item rune) int {
+	value := int(item)
+
+	if value < 97 {
+		value = value - 38
+	} else {
+		value = value - 96
+	}
+
+	return value
+
 }
