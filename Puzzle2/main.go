@@ -33,7 +33,7 @@ func main() {
 		totalScorePart2 = totalScorePart2 + scoreGame(string(line), 2)
 	}
 
-	fmt.Printf("\nThe total score following the strategy for part 1 was: %d\n", totalScorePart1) // 12586
+	fmt.Printf("\nThe total score following the strategy for part 1 was: %d\n", totalScorePart1)
 
 	fmt.Printf("The total score following the strategy for part 2 was: %d\n", totalScorePart2)
 
