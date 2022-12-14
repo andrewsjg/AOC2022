@@ -55,6 +55,10 @@ func makeAssignments(input string) ([][]assignment, error) {
 	for {
 		assignmentPairBytes, _, err := assignmentReader.ReadLine()
 
+		if err == io.EOF {
+			break
+		}
+
 		aPair := string(assignmentPairBytes)
 
 		if len(assignmentPairBytes) > 0 {
@@ -77,9 +81,6 @@ func makeAssignments(input string) ([][]assignment, error) {
 			assignments = append(assignments, assignmentPairs)
 		}
 
-		if err == io.EOF {
-			break
-		}
 	}
 
 	return assignments, nil
