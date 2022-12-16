@@ -14,17 +14,6 @@ type stack string
 type containerStack map[int]stack
 
 func main() {
-	/*stacks := makeStacks("input.txt")
-	fmt.Println(stacks)
-
-	stack1 := stacks[1]
-	fmt.Println(stack1)
-
-	stack1.popMultiple(3)
-	fmt.Println(stack1)
-
-	stack1.push("ABC")
-	fmt.Println(stack1) */
 
 	// Part 1
 	stacks := makeStacks("input.txt")
