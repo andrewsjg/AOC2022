@@ -99,7 +99,7 @@ func readShellData(input string) fileSystemDirectory {
 
 				} else {
 					fmt.Println(currentDirectory.name + " has no Children. This probably should never happen")
-					fmt.Println("Trying to change to do: " + cmd + " " + cmdInput)
+					fmt.Println("Trying to do: " + cmd + " " + cmdInput)
 					fmt.Println()
 				}
 
