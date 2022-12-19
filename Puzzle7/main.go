@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -26,6 +27,11 @@ func main() {
 	fs := readShellData("input.txt")
 
 	fmt.Printf("Part 1 - Sum of all directories of size 100000 or less: %d\n", walkFS(fs))
+
+	smallerThan := getSmallerThan(fs, getRequiredSpace(fs))
+	sort.Ints(smallerThan)
+
+	fmt.Printf("Part 2 - Size of the directory required to be deleted for the update: %d\n", smallerThan[0])
 }
 
 func readShellData(input string) fileSystemDirectory {
@@ -165,6 +171,7 @@ func walkFS(fsDir fileSystemDirectory) int {
 	if ts <= 100000 {
 
 		res = ts
+
 	}
 
 	for _, childDir := range fsDir.children {
@@ -173,4 +180,33 @@ func walkFS(fsDir fileSystemDirectory) int {
 	}
 
 	return res
+}
+
+func getRequiredSpace(fsDir fileSystemDirectory) int {
+
+	totalSpace := 70000000
+	usedSpace := getTreeSize(&fsDir)
+
+	requiredSpace := 30000000 - (totalSpace - usedSpace)
+
+	return requiredSpace
+
+}
+
+func getSmallerThan(fsDir fileSystemDirectory, spaceRequired int) []int {
+	sizes := []int{}
+
+	ts := getTreeSize(&fsDir)
+
+	if ts >= spaceRequired {
+
+		sizes = append(sizes, ts)
+
+	}
+	for _, child := range fsDir.children {
+		sizes = append(sizes, getSmallerThan(*child, spaceRequired)...)
+	}
+
+	return sizes
+
 }
