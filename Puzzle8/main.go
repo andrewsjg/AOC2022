@@ -11,8 +11,13 @@ import (
 func main() {
 	trees := readTrees("input.txt")
 
+	visibleCount, maxScore := visibleCountandScore(trees)
 	// Part 1
-	fmt.Printf("Part 1 - Number of visible trees: %d\n", visibleCount(trees))
+	fmt.Printf("Part 1 - Number of visible trees: %d\n", visibleCount) //1708
+
+	// Part 2
+	fmt.Printf("Part 2 - Max tree score: %d\n", maxScore) // 1179360 to high // 1051392 WRONG
+
 }
 
 // This seems unecessary, but my brain hurts working out a better way at
@@ -30,8 +35,9 @@ func getColumn(trees [][]int, columnNumber int) []int {
 	return treeCol
 }
 
-func visibleCount(trees [][]int) int {
+func visibleCountandScore(trees [][]int) (int, int) {
 	visibleCount := 0
+	maxTreeScore := 0
 
 	for treeRowNum, treeRow := range trees {
 
@@ -43,15 +49,61 @@ func visibleCount(trees [][]int) int {
 			colTop, colTail := splitArray(treeCol, treeRowNum+1)
 			rowLeft, rowRight := splitArray(treeRow, treeColNum+1)
 
-			//fmt.Printf("biggest Tree ColTop: %t biggest Tree ColTail: %t biggest Tree Rowleft: %t biggest Tree RowRight: %t\n", biggestTree(tree, colTop), biggestTree(tree, colTail), biggestTree(tree, rowLeft), biggestTree(tree, rowRight))
-
 			if biggestTree(tree, colTop) || biggestTree(tree, colTail) || biggestTree(tree, rowLeft) || biggestTree(tree, rowRight) {
 				visibleCount++
 			}
+
+			currenttreeScore := scoreTree(tree, rowLeft, rowRight, colTop, colTail)
+			if currenttreeScore > maxTreeScore {
+				maxTreeScore = currenttreeScore
+			}
+
 		}
 	}
 
-	return visibleCount
+	return visibleCount, maxTreeScore
+}
+
+func scoreTree(tree int, left []int, right []int, up []int, down []int) int {
+	score := 0
+
+	score = viewDistance(tree, reverse(left)) * viewDistance(tree, right) * viewDistance(tree, reverse(up)) * viewDistance(tree, down)
+
+	return score
+}
+
+func viewDistance(tree int, trees []int) int {
+	score := 0
+
+	for _, t := range trees {
+		if t < tree {
+			score++
+		} else {
+			score++
+			break
+		}
+	}
+
+	return score
+}
+
+func reverse[T any](arr []T) []T {
+
+	// first make a copy of the input slice.
+	// For this function We want to return a NEW
+	// slice that is reversed, not modify the source slice.
+	// Slices make use of pointers for the values, so need to copy
+	// the source slice into a new slice before doing
+	// the reverse operation
+
+	a := make([]T, len(arr))
+	copy(a, arr)
+
+	for i, j := 0, len(a)-1; i < j; i, j = i+1, j-1 {
+		a[i], a[j] = a[j], a[i]
+	}
+
+	return a
 }
 
 // Why not make it generic!
