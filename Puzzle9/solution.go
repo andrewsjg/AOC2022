@@ -13,46 +13,36 @@ type location struct {
 	y int
 }
 
-type rope struct {
+type knot struct {
 	location       location
 	locationVisits locationVisits
-	path           []location
+}
+type rope struct {
+	knots []knot
 }
 
 type locationVisits map[location]int
 
 // Makes a rope
-func makeRope() rope {
+func makeRope(knots int) rope {
 
 	newRope := rope{}
-	newRope.location = location{0, 0}
-	newRope.locationVisits = locationVisits{}
 
-	newRope.locationVisits[newRope.location] += 1
-	newRope.path = []location{}
+	for i := 0; i < knots; i++ {
+		knot := knot{}
+		knot.location = location{0, 0}
+		knot.locationVisits = map[location]int{}
+		knot.locationVisits[knot.location] += 1
+		newRope.knots = append(newRope.knots, knot)
+	}
 
 	return newRope
 }
 
 func RunSolution(input string) {
 
-	ropeHead := makeRope()
-	ropeTail := makeRope()
-
-	p2Head := makeRope()
-	knot1 := makeRope()
-
-	knot2 := makeRope()
-	knot3 := makeRope()
-
-	knot4 := makeRope()
-	knot5 := makeRope()
-
-	knot6 := makeRope()
-	knot7 := makeRope()
-
-	knot8 := makeRope()
-	p2Tail := makeRope()
+	p1Rope := makeRope(2)
+	p2Rope := makeRope(10)
 
 	pathData, err := os.Open(input)
 	if err != nil {
@@ -78,165 +68,73 @@ func RunSolution(input string) {
 			fmt.Println("Error converting distance value: " + err.Error())
 		}
 
-		// Part 1
 		for i := 0; i < distance; i++ {
-			//moveRope(&ropeHead, &ropeTail, direction)
-			moveHead(&ropeHead, direction)
-			moveTail(ropeHead, &ropeTail)
-		}
 
-		// Part 2
-		for i := 0; i < distance; i++ {
-			moveHead(&p2Head, direction)
-			moveTail(p2Head, &knot1)
-
-			moveTail(knot1, &knot2)
-			moveTail(knot2, &knot3)
-			moveTail(knot3, &knot4)
-			moveTail(knot4, &knot5)
-			moveTail(knot5, &knot6)
-			moveTail(knot6, &knot7)
-			moveTail(knot7, &knot8)
-
-			moveTail(knot8, &p2Tail)
-
-			/* fmt.Println(p2Head.location)
-			fmt.Println(p2Tail.location)
-			fmt.Println() */
+			p1Rope.moveHead(direction)
+			p2Rope.moveHead(direction)
 
 		}
 
 	}
 
-	fmt.Printf("Part 1 - Locations Tail Visited: %d, Locations Head Visited: %d\n", len(ropeTail.locationVisits), len(ropeHead.locationVisits))
-	fmt.Printf("Part 2 - Locations Tail Visited: %d, Locations Head Visited: %d\n", len(p2Tail.locationVisits), len(p2Head.locationVisits)) // 2148 WRONG! 2386
+	p1tail := p1Rope.knots[len(p1Rope.knots)-1]
+	p1head := p1Rope.knots[0]
+
+	p2tail := p2Rope.knots[len(p2Rope.knots)-1]
+	p2head := p2Rope.knots[0]
+
+	fmt.Printf("Part 1 - Locations Tail Visited: %d, Locations Head Visited: %d\n", len(p1tail.locationVisits), len(p1head.locationVisits))
+	fmt.Printf("Part 2 - Locations Tail Visited: %d, Locations Head Visited: %d\n", len(p2tail.locationVisits), len(p2head.locationVisits))
 
 }
 
-func moveHead(ropeHead *rope, direction string) {
-
+func (r *rope) moveHead(direction string) {
 	switch direction {
 	case "U":
-		ropeHead.location.y += 1
+		r.knots[0].location.y += 1
 
 	case "D":
-		ropeHead.location.y -= 1
+		r.knots[0].location.y -= 1
 
 	case "L":
 
-		ropeHead.location.x -= 1
+		r.knots[0].location.x -= 1
 
 	case "R":
-		ropeHead.location.x += 1
+		r.knots[0].location.x += 1
 
 	}
 
-	ropeHead.path = append(ropeHead.path, ropeHead.location)
-	ropeHead.locationVisits[ropeHead.location] += 1
-}
+	r.knots[0].locationVisits[r.knots[0].location] += 1
 
-func moveTail(ropeHead rope, ropeTail *rope) {
+	for i := 1; i < len(r.knots); i++ {
 
-	if (ropeTail.location.y + 2) == ropeHead.location.y {
+		diffX := r.knots[i-1].location.x - r.knots[i].location.x
+		diffY := r.knots[i-1].location.y - r.knots[i].location.y
 
-		ropeTail.location.y = ropeTail.location.y + 1
-		ropeTail.location.x = ropeHead.location.x
-		ropeTail.path = append(ropeTail.path, ropeTail.location)
+		// Only move if the tail is within 1 of the head
+		if !(diffX < 2 && diffX > -2 && diffY < 2 && diffY > -2) {
+			if diffY > 0 {
 
-		ropeTail.locationVisits[ropeTail.location] += 1
+				r.knots[i].location.y += (diffY + 1) / 2
 
-	}
+			} else {
 
-	if (ropeTail.location.y - 2) == ropeHead.location.y {
+				r.knots[i].location.y += (diffY - 1) / 2
 
-		ropeTail.location.y = ropeTail.location.y - 1
-		ropeTail.location.x = ropeHead.location.x
-		ropeTail.path = append(ropeTail.path, ropeTail.location)
+			}
 
-		ropeTail.locationVisits[ropeTail.location] += 1
+			if diffX > 0 {
 
-	}
+				r.knots[i].location.x += (diffX + 1) / 2
 
-	if (ropeTail.location.x - 2) == ropeHead.location.x {
+			} else {
 
-		ropeTail.location.x = ropeTail.location.x - 1
-		ropeTail.location.y = ropeHead.location.y
-		ropeTail.path = append(ropeTail.path, ropeTail.location)
+				r.knots[i].location.x += (diffX - 1) / 2
 
-		ropeTail.locationVisits[ropeTail.location] += 1
-
-	}
-
-	if (ropeTail.location.x + 2) == ropeHead.location.x {
-
-		ropeTail.location.x = ropeTail.location.x + 1
-		ropeTail.location.y = ropeHead.location.y
-		ropeTail.path = append(ropeTail.path, ropeTail.location)
-
-		ropeTail.locationVisits[ropeTail.location] += 1
-
-	}
-
-}
-
-func moveRope(ropeHead *rope, ropeTail *rope, direction string) {
-	switch direction {
-	case "U":
-		ropeHead.location.y += 1
-
-		if (ropeTail.location.y + 2) == ropeHead.location.y {
-
-			ropeTail.location.y = ropeTail.location.y + 1
-			ropeTail.location.x = ropeHead.location.x
-			ropeTail.path = append(ropeTail.path, ropeTail.location)
-
-			ropeTail.locationVisits[ropeTail.location] += 1
-
+			}
 		}
-
-	case "D":
-		ropeHead.location.y -= 1
-
-		if (ropeTail.location.y - 2) == ropeHead.location.y {
-
-			ropeTail.location.y = ropeTail.location.y - 1
-			ropeTail.location.x = ropeHead.location.x
-			ropeTail.path = append(ropeTail.path, ropeTail.location)
-
-			ropeTail.locationVisits[ropeTail.location] += 1
-
-		}
-
-	case "L":
-
-		ropeHead.location.x -= 1
-
-		if (ropeTail.location.x - 2) == ropeHead.location.x {
-
-			ropeTail.location.x = ropeTail.location.x - 1
-			ropeTail.location.y = ropeHead.location.y
-			ropeTail.path = append(ropeTail.path, ropeTail.location)
-
-			ropeTail.locationVisits[ropeTail.location] += 1
-
-		}
-
-	case "R":
-		ropeHead.location.x += 1
-
-		if (ropeTail.location.x + 2) == ropeHead.location.x {
-
-			ropeTail.location.x = ropeTail.location.x + 1
-			ropeTail.location.y = ropeHead.location.y
-			ropeTail.path = append(ropeTail.path, ropeTail.location)
-
-			ropeTail.locationVisits[ropeTail.location] += 1
-
-		}
-
+		r.knots[i].locationVisits[r.knots[i].location] += 1
 	}
-
-	ropeHead.path = append(ropeHead.path, ropeHead.location)
-	ropeHead.locationVisits[ropeHead.location] += 1
 
 }
