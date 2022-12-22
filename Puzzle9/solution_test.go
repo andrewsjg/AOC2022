@@ -544,7 +544,8 @@ func TestPath(t *testing.T) {
 	ropeHead := makeRope()
 	ropeTail := makeRope()
 
-	moveRope(&ropeHead, &ropeTail, "U")
+	moveHead(&ropeHead, "U")
+	moveTail(ropeHead, &ropeTail)
 
 	expectedHeadLocation := location{0, 1}
 	if ropeHead.location != expectedHeadLocation {
@@ -558,7 +559,8 @@ func TestPath(t *testing.T) {
 
 	}
 
-	moveRope(&ropeHead, &ropeTail, "R")
+	moveHead(&ropeHead, "R")
+	moveTail(ropeHead, &ropeTail)
 
 	expectedHeadLocation = location{1, 1}
 	if ropeHead.location != expectedHeadLocation {
@@ -572,7 +574,8 @@ func TestPath(t *testing.T) {
 
 	}
 
-	moveRope(&ropeHead, &ropeTail, "R")
+	moveHead(&ropeHead, "R")
+	moveTail(ropeHead, &ropeTail)
 
 	expectedHeadLocation = location{2, 1}
 	if ropeHead.location != expectedHeadLocation {
@@ -588,6 +591,72 @@ func TestPath(t *testing.T) {
 
 	if len(ropeTail.locationVisits) != 2 {
 		t.Errorf("Expected RopeTail locationvisits = 2, got: %d}", len(ropeTail.locationVisits))
+
+	}
+}
+
+func TestLongRope(t *testing.T) {
+	head := makeRope()
+	knot1 := makeRope()
+	knot2 := makeRope()
+	knot3 := makeRope()
+	knot4 := makeRope()
+	knot5 := makeRope()
+	knot6 := makeRope()
+	knot7 := makeRope()
+	knot8 := makeRope()
+	tail := makeRope()
+
+	for i := 1; i <= 10; i++ {
+		moveHead(&head, "U")
+		moveTail(head, &knot1)
+
+		moveTail(knot1, &knot2)
+		moveTail(knot2, &knot3)
+		moveTail(knot3, &knot4)
+		moveTail(knot4, &knot5)
+		moveTail(knot5, &knot6)
+		moveTail(knot6, &knot7)
+		moveTail(knot7, &knot8)
+
+		moveTail(knot8, &tail)
+	}
+
+	if tail.location.y != 1 {
+		t.Errorf("Expected Location tail Y location to be 1 got %d", tail.location.y)
+
+	}
+
+	if len(tail.locationVisits) != 2 {
+		t.Errorf("Expected Locations to be 2 got %d", len(tail.locationVisits))
+
+	}
+
+	fmt.Println(tail.location)
+
+	for i := 1; i <= 10; i++ {
+		moveHead(&head, "R")
+		moveTail(head, &knot1)
+
+		moveTail(knot1, &knot2)
+		moveTail(knot2, &knot3)
+		moveTail(knot3, &knot4)
+		moveTail(knot4, &knot5)
+		moveTail(knot5, &knot6)
+		moveTail(knot6, &knot7)
+		moveTail(knot7, &knot8)
+
+		moveTail(knot8, &tail)
+		fmt.Println(tail.location)
+	}
+
+	if tail.location.x != 1 {
+		t.Errorf("Expected Location tail X location to be 1 got %d", tail.location.x)
+
+	}
+
+	if len(tail.locationVisits) != 3 {
+		t.Errorf("Expected Locations to be 3 got %d", len(tail.locationVisits))
 
 	}
 }
