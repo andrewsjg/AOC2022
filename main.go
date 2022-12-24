@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/andrewsjg/AOC2022/Puzzle9"
+	"github.com/andrewsjg/AOC2022/Puzzle10"
 )
 
 func main() {
-	Puzzle9.RunSolution("./Puzzle9/input.txt")
+	Puzzle10.RunSolution("./Puzzle10/input.txt")
 
 }
