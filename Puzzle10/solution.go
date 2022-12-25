@@ -32,6 +32,7 @@ type busMessage struct {
 }
 
 type scanLine [40]string
+
 type CRT struct {
 	displayBuffer [6]scanLine
 	currentLine   int
