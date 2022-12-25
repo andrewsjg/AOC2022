@@ -34,7 +34,7 @@ type busMessage struct {
 type scanLine [40]string
 
 type CRT struct {
-	displayBuffer [6]scanLine
+	displayBuffer [7]scanLine // Because of zero indexed array. Could fix this
 	currentLine   int
 	currentPixel  int
 
@@ -72,7 +72,7 @@ func newCPU(busConnector chan busMessage) CPU {
 func newCRT(busconnector chan busMessage) CRT {
 	crt := CRT{}
 
-	crt.displayBuffer = [6]scanLine{}
+	crt.displayBuffer = [7]scanLine{}
 	crt.currentLine = -1 // This is a little hack so the display logic is slightly easier
 	crt.currentPixel = 0
 	crt.busConnector = busconnector
@@ -135,21 +135,14 @@ func (crt *CRT) start() {
 		busMsg := <-crt.busConnector
 
 		// Because the clock starts at 1 and the crt line starts at 0
-		// need to do some messing around to sort out the current pixel
+		// need to do some messing around to sort out the current pixel. Should fix this!
 		pixel := (busMsg.clockSignal % 40) - 1
 		if pixel == -1 {
 			pixel = 39
 		}
 
 		crt.currentPixel = pixel
-
-		if crt.currentPixel == 0 {
-			crt.currentLine++
-
-			if crt.currentLine == 6 {
-				crt.currentLine = 0
-			}
-		}
+		crt.currentLine = (busMsg.clockSignal - 1) / 40
 
 		spritePixel1 := busMsg.xRegisterValue - 1
 		spritePixel2 := busMsg.xRegisterValue
@@ -158,12 +151,12 @@ func (crt *CRT) start() {
 		// At this point the current pixel and display line are determined and the location of the sprite recorded
 
 		// Debug line to show the state of the CRT
-		//fmt.Printf("CRT clock signal: %d xVal: %d Current Pixel: %d Current Line: %d Sprite Pixels: {%d,%d,%d}\n", busMsg.clockSignal, busMsg.xRegisterValue, crt.currentPixel, crt.currentLine, spritePixel1, spritePixel2, spritePixel3)
+		// fmt.Printf("CRT clock signal: %d xVal: %d Current Pixel: %d Current Line: %d Sprite Pixels: {%d,%d,%d}\n", busMsg.clockSignal, busMsg.xRegisterValue, crt.currentPixel, crt.currentLine, spritePixel1, spritePixel2, spritePixel3)
 
 		// Write to the display buffer
 
 		if crt.currentPixel == spritePixel1 || crt.currentPixel == spritePixel2 || crt.currentPixel == spritePixel3 {
-			crt.displayBuffer[crt.currentLine][crt.currentPixel] = "#"
+			crt.displayBuffer[crt.currentLine][crt.currentPixel] = "█"
 		} else {
 			// On my screen it was easier to see the message without rendering a '.' for the none
 			// 'unlit' pixels
