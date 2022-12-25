@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// To syncronishe the goroutines
+// Use a waitgroup to syncronishe the goroutines
 var wg sync.WaitGroup
 
 type CPU struct {
@@ -49,36 +49,38 @@ type Machine struct {
 	cpubus chan busMessage
 }
 
+// Configure a CPU
 func newCPU(busConnector chan busMessage) CPU {
 	cpu := CPU{}
 	cpu.xRegister = 1
 	cpu.clockSpeed = 0 // 0 is fast, 1 is slow. Use 1 to debug execution
 	cpu.cycleCount = 0
 	cpu.clock = make(chan int)
-	//cpu.controlChan = make(chan string) // not used right now
 	cpu.instructionQueue = make(chan []string)
 	cpu.memory = map[int]int{}
 	cpu.busConnector = busConnector
 
 	// Load the signal checker inputs into the 'special' memory addresses
-	// used by the regchecker function
+	// used by the busprocessor function
 	cpu.memory[-1] = 20
 	cpu.memory[-2] = 60
 
 	return cpu
 }
 
+// Configure a CRT
 func newCRT(busconnector chan busMessage) CRT {
 	crt := CRT{}
 
 	crt.displayBuffer = [6]scanLine{}
-	crt.currentLine = -1
+	crt.currentLine = -1 // This is a little hack so the display logic is slightly easier
 	crt.currentPixel = 0
 	crt.busConnector = busconnector
 
 	return crt
 }
 
+// Configure a  machine with a CPU and a CRT
 func newMachine() Machine {
 	machine := Machine{}
 
@@ -107,6 +109,13 @@ func (m *Machine) start() {
 
 }
 
+// Connect all the various peripherals together
+// Only a CRT and a CPU. So all this does is relay
+// messages from the CPU to the CRT
+//
+// NOTE: Channels arent actually a great analogy for a bus.
+// but it works for now.
+
 func (m *Machine) busProcessor() {
 
 	//defer wg.Done()
@@ -122,6 +131,7 @@ func (crt *CRT) start() {
 	defer wg.Done()
 
 	for {
+		// Get messages via the bus
 		busMsg := <-crt.busConnector
 
 		// Because the clock starts at 1 and the crt line starts at 0
@@ -145,12 +155,12 @@ func (crt *CRT) start() {
 		spritePixel2 := busMsg.xRegisterValue
 		spritePixel3 := busMsg.xRegisterValue + 1
 
-		// Current pixel and line determined and the location of the sprite recorded
+		// At this point the current pixel and display line are determined and the location of the sprite recorded
 
 		// Debug line to show the state of the CRT
 		//fmt.Printf("CRT clock signal: %d xVal: %d Current Pixel: %d Current Line: %d Sprite Pixels: {%d,%d,%d}\n", busMsg.clockSignal, busMsg.xRegisterValue, crt.currentPixel, crt.currentLine, spritePixel1, spritePixel2, spritePixel3)
 
-		//Write to the display buffer
+		// Write to the display buffer
 
 		if crt.currentPixel == spritePixel1 || crt.currentPixel == spritePixel2 || crt.currentPixel == spritePixel3 {
 			crt.displayBuffer[crt.currentLine][crt.currentPixel] = "#"
@@ -160,6 +170,9 @@ func (crt *CRT) start() {
 			crt.displayBuffer[crt.currentLine][crt.currentPixel] = " "
 		}
 
+		// There should probably also be a 'flush' message to signal when the display
+		// buffer can be safely read. But since we just need to render one 'screen' we will
+		// never fill the buffer more than once. So simply halt and render afterwards.
 		if busMsg.controlMsg == "HALT" {
 			return
 		}
@@ -167,8 +180,8 @@ func (crt *CRT) start() {
 	}
 }
 
+// Render the screen based on what is in the display buffer
 func (crt *CRT) renderScreen() {
-	// Render the screen based on what is in the display buffer
 	for _, line := range crt.displayBuffer {
 		for _, pixel := range line {
 			fmt.Print(pixel)
@@ -180,7 +193,7 @@ func (crt *CRT) renderScreen() {
 func (c *CPU) start() {
 
 	c.cpuState = "RUN"
-	// execution pipeline
+	// The execution pipeline
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -190,7 +203,7 @@ func (c *CPU) start() {
 			// sync to clock
 			c.cycleCount = <-c.clock
 
-			// Check the X register after every clock cycle
+			// Call the bus updater every clock cycle
 			c.busUpdater()
 
 			instruction := <-c.instructionQueue
@@ -203,7 +216,7 @@ func (c *CPU) start() {
 				return
 			}
 
-			// if instruction is addx, a clock cycle gets burnt here
+			// Remember, if the instruction is addx, a clock cycle gets burnt here
 			c.executeInstruction(instruction)
 
 		}
@@ -234,7 +247,7 @@ func (c *CPU) executeInstruction(instruction []string) {
 
 	case "addx":
 		c.cycleCount = <-c.clock // consume a cycle
-		// Check the X register since we consumed a cycle
+		// Because we used a clock cycle, need to call the bus updater
 		c.busUpdater()
 
 		if len(instruction) < 1 {
@@ -263,7 +276,8 @@ func (c *CPU) executeInstruction(instruction []string) {
 
 // There might be a cooler way of doing this, but for now the CPU checks the X register and
 // updates the bus on every cycle and can do something with it.
-// In this case it stores the signal strength values it its memory
+// In this case it stores the signal strength values it its memory and propagates bus messages
+// from the CPU
 
 func (c *CPU) busUpdater() {
 
@@ -306,9 +320,6 @@ func RunSolution(inputFileName string) {
 	programReader := bufio.NewReader(programData)
 
 	machine := newMachine()
-
-	/*cpu := newCPU(nil)
-	cpu.start() */
 	machine.start()
 
 	for {
