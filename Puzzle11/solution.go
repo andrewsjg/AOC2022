@@ -34,8 +34,9 @@ func RunSolution(inputFileName string) {
 	}
 
 	inspections := []int{}
-	for _, monkey := range monkies {
+	for monkeyNum, monkey := range monkies {
 		inspections = append(inspections, monkey.numInspections)
+		fmt.Printf("Monkey %d inspected %d items\n", monkeyNum, monkey.numInspections)
 	}
 
 	sort.Ints(inspections)
