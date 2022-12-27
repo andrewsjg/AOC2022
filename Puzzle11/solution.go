@@ -14,7 +14,7 @@ type Monkey struct {
 	items []int
 
 	operation      string
-	test           string
+	divisor        int
 	throwToOnTrue  int
 	throwToOnFalse int
 	numInspections int
@@ -104,9 +104,13 @@ func parseInput(inputFileName string) []Monkey {
 			monkey.operation = strings.TrimSpace(monkeyLine[strings.Index(monkeyLine, ":")+1:])
 		}
 
-		// Add test
-		if strings.Contains(monkeyLine, "Test") {
-			monkey.test = strings.TrimSpace(monkeyLine[strings.Index(monkeyLine, ":")+1:])
+		// Add divisor
+		if strings.Contains(monkeyLine, "divisible") {
+			div, err := strconv.Atoi(strings.TrimSpace(monkeyLine[strings.LastIndex(monkeyLine, " "):]))
+			if err != nil {
+				fmt.Println("There was an error parsing the divisor:  " + err.Error())
+			}
+			monkey.divisor = div
 		}
 
 		// Add if true action
@@ -143,7 +147,7 @@ func doMonkeyBusiness(monkeyNum int, monkies *[]Monkey) {
 		worryScore := (performOperation(item, (*monkies)[monkeyNum].operation) / 3)
 
 		// Perform the test
-		test := performTest(worryScore, (*monkies)[monkeyNum].test)
+		test := performP1Test(worryScore, (*monkies)[monkeyNum].divisor)
 
 		destinationMonkey := -1
 		if test {
@@ -161,21 +165,11 @@ func doMonkeyBusiness(monkeyNum int, monkies *[]Monkey) {
 	(*monkies)[monkeyNum].items = []int{}
 }
 
-func performTest(worryScore int, test string) bool {
+func performP1Test(worryScore int, divisor int) bool {
 	result := false
 
-	if strings.Contains(test, "divisible") {
-		right, err := strconv.Atoi(strings.TrimSpace(test[strings.LastIndex(test, " "):]))
-
-		if err != nil {
-			fmt.Println("There was an error parsing the test right operand: " + err.Error())
-			panic(err.Error())
-		}
-
-		if worryScore%right == 0 {
-			result = true
-		}
-
+	if worryScore%divisor == 0 {
+		result = true
 	}
 
 	return result
