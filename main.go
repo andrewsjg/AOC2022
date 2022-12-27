@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	Puzzle11.RunSolution("./Puzzle11/testinput.txt")
+	Puzzle11.RunSolution("./Puzzle11/input.txt")
 
 }

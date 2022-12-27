@@ -140,6 +140,13 @@ func parseInput(inputFileName string) []Monkey {
 // this alters the monkeys array
 func doMonkeyBusiness(monkeyNum int, monkeys *[]Monkey, part2 bool) {
 
+	// This is horribly ineffiecient to do on every round. But it was the easiest
+	// way to hack into my P1 solution and I couldnt be bothered refactoring
+
+	// Need a common multiple. Since the divisors all appear to be primne
+	// The product of all divisors is always equal to the least common multiple
+	// needed Reddit's help for this one.
+
 	lcm := 1
 	for _, monkey := range *monkeys {
 		lcm *= monkey.divisor
@@ -148,19 +155,15 @@ func doMonkeyBusiness(monkeyNum int, monkeys *[]Monkey, part2 bool) {
 	for _, item := range (*monkeys)[monkeyNum].items {
 
 		(*monkeys)[monkeyNum].numInspections++
-		// Perform the operation
-		worryScore := performOperation(item, (*monkeys)[monkeyNum].operation) / 3
 
-		// Perform the test
-		test := performP1Test(worryScore, (*monkeys)[monkeyNum].divisor)
+		worryScore := performOperation(item, (*monkeys)[monkeyNum].operation) / 3
 
 		if part2 {
 			worryScore = (performOperation(item, (*monkeys)[monkeyNum].operation)) % lcm
-			test = performP1Test(worryScore, (*monkeys)[monkeyNum].divisor)
 		}
 
 		destinationMonkey := -1
-		if test {
+		if worryScore%(*monkeys)[monkeyNum].divisor == 0 {
 			destinationMonkey = (*monkeys)[monkeyNum].throwToOnTrue
 
 		} else {
@@ -173,17 +176,6 @@ func doMonkeyBusiness(monkeyNum int, monkeys *[]Monkey, part2 bool) {
 
 	// Monkey will have tossed every item at the end of its turn. So empty the items array
 	(*monkeys)[monkeyNum].items = []int{}
-}
-
-func performTest(worryScore int, divisor int) bool {
-	result := false
-
-	if worryScore%divisor == 0 {
-		result = true
-	}
-
-	return result
-
 }
 
 // Parse the operation and perform it on the item
