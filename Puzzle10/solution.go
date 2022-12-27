@@ -156,7 +156,7 @@ func (crt *CRT) start() {
 		// Write to the display buffer
 
 		if crt.currentPixel == spritePixel1 || crt.currentPixel == spritePixel2 || crt.currentPixel == spritePixel3 {
-			crt.displayBuffer[crt.currentLine][crt.currentPixel] = "█"
+			crt.displayBuffer[crt.currentLine][crt.currentPixel] = "█" // Saw someone else use a block character in place of #. This renders much better!
 		} else {
 			// On my screen it was easier to see the message without rendering a '.' for the none
 			// 'unlit' pixels
