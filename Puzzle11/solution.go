@@ -22,30 +22,30 @@ type Monkey struct {
 
 func RunSolution(inputFileName string) {
 
-	monkies := parseInput(inputFileName)
-	numrounds := 20
+	monkeys := parseInput(inputFileName)
+	numrounds := 10000
 
 	for i := 0; i < numrounds; i++ {
 
 		// Do a round
-		for monkeyNum := range monkies {
-			doMonkeyBusiness(monkeyNum, &monkies)
+		for monkeyNum := range monkeys {
+			doMonkeyBusiness(monkeyNum, &monkeys, true)
 		}
 	}
 
 	inspections := []int{}
-	for monkeyNum, monkey := range monkies {
+	for monkeyNum, monkey := range monkeys {
 		inspections = append(inspections, monkey.numInspections)
 		fmt.Printf("Monkey %d inspected %d items\n", monkeyNum, monkey.numInspections)
 	}
 
 	sort.Ints(inspections)
 
-	fmt.Printf("Part 1 - The sum of the two most active monkies is %d\n", inspections[len(inspections)-1]*inspections[len(inspections)-2])
+	fmt.Printf("Part 1 - The sum of the two most active monkeys is %d\n", inspections[len(inspections)-1]*inspections[len(inspections)-2])
 }
 
 func parseInput(inputFileName string) []Monkey {
-	monkies := []Monkey{}
+	monkeys := []Monkey{}
 	monkey := Monkey{}
 
 	monkey.numInspections = 0
@@ -53,7 +53,7 @@ func parseInput(inputFileName string) []Monkey {
 	monkeyData, err := os.Open(inputFileName)
 	if err != nil {
 		fmt.Println(("There was an error reading input: ") + err.Error())
-		return monkies
+		return monkeys
 	}
 	defer monkeyData.Close()
 
@@ -66,13 +66,13 @@ func parseInput(inputFileName string) []Monkey {
 		monkeyLine := string(line)
 		if err == io.EOF {
 			// append the last monkey
-			monkies = append(monkies, monkey)
+			monkeys = append(monkeys, monkey)
 			break
 		}
 
 		if monkeyLine == "" {
 			//Each monkey is separated by one blank line
-			monkies = append(monkies, monkey)
+			monkeys = append(monkeys, monkey)
 
 			// Make a new monkey
 			monkey = Monkey{}
@@ -89,7 +89,7 @@ func parseInput(inputFileName string) []Monkey {
 
 				if err != nil {
 					fmt.Println("There was an error parsing items: " + err.Error())
-					return monkies
+					return monkeys
 				}
 
 				items = append(items, iItem)
@@ -134,38 +134,48 @@ func parseInput(inputFileName string) []Monkey {
 		}
 	}
 
-	return monkies
+	return monkeys
 }
 
-// this alters the monkies array
-func doMonkeyBusiness(monkeyNum int, monkies *[]Monkey) {
+// this alters the monkeys array
+func doMonkeyBusiness(monkeyNum int, monkeys *[]Monkey, part2 bool) {
 
-	for _, item := range (*monkies)[monkeyNum].items {
+	lcm := 1
+	for _, monkey := range *monkeys {
+		lcm *= monkey.divisor
+	}
 
-		(*monkies)[monkeyNum].numInspections++
+	for _, item := range (*monkeys)[monkeyNum].items {
+
+		(*monkeys)[monkeyNum].numInspections++
 		// Perform the operation
-		worryScore := (performOperation(item, (*monkies)[monkeyNum].operation) / 3)
+		worryScore := performOperation(item, (*monkeys)[monkeyNum].operation) / 3
 
 		// Perform the test
-		test := performP1Test(worryScore, (*monkies)[monkeyNum].divisor)
+		test := performP1Test(worryScore, (*monkeys)[monkeyNum].divisor)
+
+		if part2 {
+			worryScore = (performOperation(item, (*monkeys)[monkeyNum].operation)) % lcm
+			test = performP1Test(worryScore, (*monkeys)[monkeyNum].divisor)
+		}
 
 		destinationMonkey := -1
 		if test {
-			destinationMonkey = (*monkies)[monkeyNum].throwToOnTrue
+			destinationMonkey = (*monkeys)[monkeyNum].throwToOnTrue
 
 		} else {
-			destinationMonkey = (*monkies)[monkeyNum].throwToOnFalse
+			destinationMonkey = (*monkeys)[monkeyNum].throwToOnFalse
 		}
 
-		(*monkies)[destinationMonkey].items = append((*monkies)[destinationMonkey].items, worryScore)
+		(*monkeys)[destinationMonkey].items = append((*monkeys)[destinationMonkey].items, worryScore)
 
 	}
 
 	// Monkey will have tossed every item at the end of its turn. So empty the items array
-	(*monkies)[monkeyNum].items = []int{}
+	(*monkeys)[monkeyNum].items = []int{}
 }
 
-func performP1Test(worryScore int, divisor int) bool {
+func performTest(worryScore int, divisor int) bool {
 	result := false
 
 	if worryScore%divisor == 0 {
