@@ -8,15 +8,37 @@ import (
 )
 
 func RunSolution(inputFileLocation string) {
-	_, start, end := readMap(inputFileLocation)
-	path, _, found := path(start, end)
+	world, start, end := readMap(inputFileLocation)
+	foundPath, _, found := path(start, end)
 
 	if found {
 
 		/*for stepNo, step := range path {
 			fmt.Printf("Step No: %d: %d,%d\n", stepNo, step.(*Location).x, step.(*Location).y)
 		} */
-		fmt.Printf("Part 1 - Total Steps: %d\n", len(path)-1)
+		fmt.Printf("Part 1 - Total Steps: %d\n", len(foundPath)-1)
+
+		shortest := 1000000000000000000
+		for x, yLoc := range world {
+
+			for y, loc := range yLoc {
+				if loc.topoType == 97 {
+					//fmt.Printf("Possible Start Location x: %d, y: %d type: %d\n", x, y, loc.topoType)
+					start := world.getLocation(x, y)
+
+					foundPath, _, found = path(start, end)
+
+					if found {
+						if len(foundPath)-1 < shortest {
+							shortest = len(foundPath) - 1
+						}
+
+					}
+				}
+			}
+		}
+
+		fmt.Printf("Part 2 - Shortest from any square: %d\n", shortest)
 
 	} else {
 		fmt.Println("No path found")
